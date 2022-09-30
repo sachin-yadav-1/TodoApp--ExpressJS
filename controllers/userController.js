@@ -25,7 +25,13 @@ exports.createUser = catchAsync(async (req, res, next) => {
   data.password = await bcryptController.encryptPassword(data.password);
   if (!data.role) data.role = 'USER';
 
-  const user = await UserModel.create(data);
+  const user = (await UserModel.create(data)).toObject();
+
+  if (user) {
+    delete user.__v;
+    delete user.password;
+  }
+
   res.status(201).json({ success: true, data: user });
 });
 
@@ -41,13 +47,13 @@ exports.searchUsers = catchAsync(async (req, res, next) => {
   if (name) filter['name'] = { $regex: '.*' + name + '.*', $options: 'i' };
   if (email) filter['name'] = { $regex: '.*' + email + '.*', $options: 'i' };
 
-  const users = await UserModel.find(filter).skip(skip).limit(limit);
+  const users = await UserModel.find(filter).select('-__v -password').skip(skip).limit(limit);
   const total = await UserModel.find(filter).countDocuments();
 
-  res.status(200).json({ 
-    success: true, 
-    data: users, 
-    metadata: { total, page, limit, totalPages: Math.ceil(total / limit) } 
+  res.status(200).json({
+    success: true,
+    data: users,
+    metadata: { total, page, limit, totalPages: Math.ceil(total / limit) },
   });
 });
 
@@ -55,7 +61,7 @@ exports.getUserById = catchAsync(async (req, res, next) => {
   let { id } = req.params;
   if (!id) return next(new AppError('Id must be provided!', 400));
 
-  const user = await UserModel.findById(id);
+  const user = await UserModel.findById(id).select('-__v -password');
   if (!user) return next(new AppError('No user found with the given id!', 404));
 
   res.status(200).json({ success: true, data: user });
@@ -70,7 +76,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
     if (exists) return next(new AppError('User already exists with this email!', 401));
   }
 
-  const user = await UserModel.findByIdAndUpdate(id, update, { new: true });
+  const user = await UserModel.findByIdAndUpdate(id, update, { new: true }).select('-__v -password');
   if (!user) return next(new AppError('No user found with the given id!', 404));
 
   res.status(200).json({ success: true, data: user });
