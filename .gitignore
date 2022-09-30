@@ -1,0 +1,6 @@
+# Private 
+node_modules
+.env
+
+# Misc
+.DS_Store
