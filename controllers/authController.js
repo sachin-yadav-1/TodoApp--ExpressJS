@@ -37,7 +37,7 @@ exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) return next(new AppError('Please enter both email and password!', 400));
 
-  const user = await getUserByEmail(email);
+  const user = await UserModel.findOne({ email, isActive: true });
   if (!user || !(await bcryptController.comparePassword(password, user.password))) {
     return next(new AppError('Incorrect email or password!', 404));
   }
@@ -55,7 +55,7 @@ exports.protected = catchAsync(async (req, res, next) => {
 
   const decoded = await jwtController.verifyToken(token);
 
-  const user = await UserModel.findById(decoded.id);
+  const user = await UserModel.findOne({ _id: decoded.id, isActive: true });
   if (!user) return next(new AppError('Token invalid or expired', 404));
 
   req.user = user;

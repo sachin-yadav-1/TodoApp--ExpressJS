@@ -42,8 +42,13 @@ exports.searchUsers = catchAsync(async (req, res, next) => {
   if (email) filter['name'] = { $regex: '.*' + email + '.*', $options: 'i' };
 
   const users = await UserModel.find(filter).skip(skip).limit(limit);
+  const total = await UserModel.find(filter).countDocuments();
 
-  res.status(200).json({ success: true, data: users });
+  res.status(200).json({ 
+    success: true, 
+    data: users, 
+    metadata: { total, page, limit, totalPages: Math.ceil(total / limit) } 
+  });
 });
 
 exports.getUserById = catchAsync(async (req, res, next) => {
