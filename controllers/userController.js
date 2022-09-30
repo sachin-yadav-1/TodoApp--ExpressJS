@@ -1,25 +1,17 @@
 const UserModel = require('./../models/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
-const bcryptService = require('./bcryptController');
+const bcryptController = require('./bcryptController');
 
 const validateCreateData = (data) => {
   const missing = [];
 
-  ['name', 'email', 'password'].forEach((prop) => {
-    if (!data[prop]) missing.push(prop);
-  });
-
-  if (missing.length) {
-    return { valid: false, message: `Missing props: ${missing.join(', ')}` };
-  }
-
+  ['name', 'email', 'password'].forEach((prop) => !data[prop] && missing.push(prop));
+  if (missing.length) return { valid: false, message: `Missing props: ${missing.join(', ')}` };
   return { valid: true, message: null };
 };
 
-const getUserByEmail = async (email) => {
-  return await UserModel.findOne({ email });
-};
+const getUserByEmail = async (email) => await UserModel.findOne({ email });
 
 exports.createUser = catchAsync(async (req, res, next) => {
   const data = req.body;
@@ -30,7 +22,7 @@ exports.createUser = catchAsync(async (req, res, next) => {
   const existing = await getUserByEmail(data.email);
   if (existing) return next(new AppError('User already exists with this email!', 401));
 
-  data.password = await bcryptService.encryptPassword(data.password);
+  data.password = await bcryptController.encryptPassword(data.password);
   if (!data.role) data.role = 'USER';
 
   const user = await UserModel.create(data);
@@ -81,7 +73,12 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 
 exports.softDeleteUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+  const { user: loggedInUser } = req;
   if (!id) return next(new AppError('Id must be provided!', 400));
+
+  if ((loggedInUser.role !== 'ADMIN' || loggedInUser.role !== 'SUPERADMIN') && String(loggedInUser._id) !== String(id)) {
+    return next(new AppError('You are not authorized for this action!', 400));
+  }
 
   const user = await UserModel.findByIdAndUpdate(id, { isActive: false });
   if (!user) return next(new AppError('No user found with the given id!', 404));

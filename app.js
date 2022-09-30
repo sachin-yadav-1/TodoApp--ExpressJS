@@ -5,7 +5,9 @@ const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 
+const AppError = require('./utils/appError');
 const userRouter = require('./routes/userRoutes');
+const authRouter = require('./routes/authRoutes');
 const globalErrorHandler = require('./controllers/errorController.js');
 
 const app = express();
@@ -22,6 +24,7 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
+app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);
 app.all('*', (req, res, next) => {
   next(new AppError(`Path not found: ${req.originalUrl}`, 404));
