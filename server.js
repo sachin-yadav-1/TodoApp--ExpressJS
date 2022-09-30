@@ -8,7 +8,7 @@ process.on('unhandledException', (err) => {
   process.exit(1);
 });
 
-const DB = process.env.DB_LOCAL;
+const DB = process.env.NODE_ENV === 'dev' ? process.env.DB_LOCAL : process.env.DB_URI;
 mongoose
   .connect(DB)
   .then((conn) => console.log('DB Connection Successful: ', conn.connections[0]['_connectionString']))

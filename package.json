@@ -4,7 +4,8 @@
   "description": "apis for a simple todo app",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start:dev": "NODE_ENV=dev nodemon server.js",
+    "start:prod": "NODE_ENV=prod nodemon server.js"
   },
   "author": "Sachin Yadav",
   "license": "MIT",
