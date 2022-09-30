@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const globalErrorHandler = require('./controllers/errorController.js');
 
 const app = express();
 dotenv.config();
@@ -14,5 +15,7 @@ const limiter = rateLimit({
   message: 'Too many requests, please try again in an hour.',
 });
 app.use('/api', limiter);
+
+app.use(globalErrorHandler);
 
 module.exports = app;
