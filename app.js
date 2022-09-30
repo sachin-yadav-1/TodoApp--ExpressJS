@@ -5,6 +5,7 @@ const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 
+const userRouter = require('./routes/userRoutes');
 const globalErrorHandler = require('./controllers/errorController.js');
 
 const app = express();
@@ -20,6 +21,11 @@ const limiter = rateLimit({
   message: 'Too many requests, please try again in an hour.',
 });
 app.use('/api', limiter);
+
+app.use('/api/users', userRouter);
+app.all('*', (req, res, next) => {
+  next(new AppError(`Path not found: ${req.originalUrl}`, 404));
+});
 
 app.use(globalErrorHandler);
 
