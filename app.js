@@ -1,5 +1,10 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+
 const globalErrorHandler = require('./controllers/errorController.js');
 
 const app = express();
